@@ -23,44 +23,41 @@
  *
  */
 
-package org.shanerx.tradeshoparm;
+package org.shanerx.tradeshoplog;
 
-import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.shanerx.tradeshop.utils.Updater;
-import org.shanerx.tradeshoparm.enumys.Setting;
-import org.shanerx.tradeshoparm.listeners.*;
+import org.shanerx.tradeshoplog.enumys.Setting;
+import org.shanerx.tradeshoplog.listeners.*;
+import org.shanerx.tradeshoplog.utils.logging.TransactionLogger;
 
-public class TradeShopARM extends JavaPlugin {
+public class TradeShopLOG extends JavaPlugin {
 
-	private final int bStatsPluginID = 12515;
-	private Metrics metrics;
+	private TransactionLogger transactionLogger;
 
 	@Override
 	public void onEnable() {
 
 		Setting.reload();
 
+		transactionLogger = new TransactionLogger(this);
+
 		PluginManager pm = getServer().getPluginManager();
 
-        pm.registerEvents(new ARMRestoreRegionEventListener(this), this);
+        pm.registerEvents(new SuccessfulTradeEventListener(this), this);
 
 		if (Setting.CHECK_UPDATES.getBoolean()) {
 			new Thread(() -> getUpdater().checkCurrentVersion()).start();
 		}
 
-		if (Setting.ALLOW_METRICS.getBoolean()) {
-			metrics = new Metrics(this, bStatsPluginID);
-			getLogger().info("Metrics successfully initialized!");
-
-		} else {
-			getLogger().warning("Metrics are disabled! Please consider enabling them to support the authors!");
-		}
-
 	}
 
 	public Updater getUpdater() {
-		return new Updater(getDescription(), "https://raw.githubusercontent.com/Tradeshop/tradeshop-ARM/master/version.txt", "https://github.com/Tradeshop/tradeshop-ARM/releases");
+		return new Updater(getDescription(), "https://raw.githubusercontent.com/Tradeshop/tradeshop-LOG/master/version.txt", "https://github.com/Tradeshop/tradeshop-LOG/releases");
+	}
+
+	public TransactionLogger getTransactionLogger() {
+		return transactionLogger;
 	}
 }

@@ -23,7 +23,7 @@
  *
  */
 
-package org.shanerx.tradeshoparm.enumys;
+package org.shanerx.tradeshoplog.enumys;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Sets;
@@ -32,7 +32,7 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.shanerx.tradeshoparm.TradeShopARM;
+import org.shanerx.tradeshoplog.TradeShopLOG;
 import org.yaml.snakeyaml.Yaml;
 import org.shanerx.tradeshop.enumys.SettingSectionKeys;
 
@@ -47,10 +47,14 @@ public enum Setting {
 
     ENABLE_DEBUG(SettingSectionKeys.SYSTEM_OPTIONS, "enable-debug", 0, "What debug code should be run. this will add significant amounts of spam to the console/log, generally not used unless requested by Devs (must be a whole number)"),
     CHECK_UPDATES(SettingSectionKeys.SYSTEM_OPTIONS, "check-updates", true, "Should we check for updates when the server starts"),
-    ALLOW_METRICS(SettingSectionKeys.SYSTEM_OPTIONS, "allow-metrics", true, "Allow us to connect anonymous metrics so we can see how our plugin is being used to better develop it");
+    OUTPUT_TYPE(SettingSectionKeys.SYSTEM_OPTIONS, "output-type", "TSV", "How should the output file be formatted\n  # Options: `TSV` - Tab Separated Value file"),
+    LOG_TIME_SEPARATION(SettingSectionKeys.SYSTEM_OPTIONS, "log-time-separation", "H", "How often should we create new log files.\n  # Options: `M` - Month, `d` - Day, `H` - Hour, `m` - Minute, `s` - Second"),
+    TRANSACTION_LOG_FORMAT(SettingSectionKeys.SYSTEM_OPTIONS, "transaction-log-format", "%Date_@_%Time_@_%ShopType_@_%Owner_@_%TradingPlayer_@_%World_@_%X_@_%Y_@_%Z_@_%CostList_@_%ProductList"
+            , "How should the output entries be formatted, each value must be seperated by `_@_`\n  # Changes to this may cause formatting errors in the current output log, please remove old output logs once you have changed this." +
+            "\n  # Values: \n  # %Date \n  # %Time \n  # %ShopType \n  # %Owner \n  # %TradingPlayer \n  # %ShopLocation \n  # %World \n  # %X \n  # %Y \n  # %Z \n  # %CostList \n  # %ProductList");
 
 
-    private static TradeShopARM plugin = (TradeShopARM) Bukkit.getPluginManager().getPlugin("TradeShop-ARM");
+    private static TradeShopLOG plugin = (TradeShopLOG) Bukkit.getPluginManager().getPlugin("TradeShop-LOG");
     private static File file = new File(plugin.getDataFolder(), "config.yml");
     private static FileConfiguration config = YamlConfiguration.loadConfiguration(file);
     private final String key;
@@ -112,7 +116,7 @@ public enum Setting {
 
                 StringBuilder data = new StringBuilder();
 
-                data.append("##########################\n").append("#    TradeShopARM Config    #\n").append("##########################\n");
+                data.append("##########################\n").append("#    TradeShopLOG Config    #\n").append("##########################\n");
                 Set<SettingSectionKeys> settingSectionKeys = Sets.newHashSet(SettingSectionKeys.values());
 
                 for (Setting setting : values()) {

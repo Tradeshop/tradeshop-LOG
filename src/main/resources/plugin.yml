@@ -1,6 +1,6 @@
 name: TradeShop-LOG
 version: ${project.version}
-main: org.shanerx.tradeshoparm.TradeShopLOG
+main: org.shanerx.tradeshoplog.TradeShopLOG
 api-version: 1.14
 load: POSTWORLD
 depend: [TradeShop]
