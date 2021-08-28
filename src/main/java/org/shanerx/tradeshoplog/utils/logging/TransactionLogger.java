@@ -65,11 +65,17 @@ public class TransactionLogger {
                 printWriter.println(localFormat.replaceAll("%", ""));
                 newFile = false;
             }
+
+            String owner = shop.getOwner().getName();
+
+            if(owner == null)
+                owner = "-Unknown-";
+
             printWriter.println(localFormat
                     .replaceAll("%Date", getTransactionDate())
                     .replaceAll("%Time", getTransactionTime())
                     .replaceAll("%ShopType", shop.getShopType().toString())
-                    .replaceAll("%Owner", shop.getOwner().getName())
+                    .replaceAll("%Owner", owner)
                     .replaceAll("%TradingPlayer", event.getPlayer().getName())
                     .replaceAll("%ShopLocation", shop.getShopLocationAsSL().toString())
                     .replaceAll("%World", shop.getShopLocationAsSL().getWorldName())
