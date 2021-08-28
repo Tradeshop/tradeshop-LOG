@@ -45,13 +45,18 @@ public enum Setting {
 
     CONFIG_VERSION(SettingSectionKeys.NONE, "config-version", 1.0, "", "\n"),
 
+    // Language Options
+    MESSAGE_PREFIX(SettingSectionKeys.LANGUAGE_OPTIONS, "message-prefix", "&a[&eTradeShop-LOG&a] ", "The prefix the displays before all plugin messages", "\n"),
+
+    // System Options
     ENABLE_DEBUG(SettingSectionKeys.SYSTEM_OPTIONS, "enable-debug", 0, "What debug code should be run. this will add significant amounts of spam to the console/log, generally not used unless requested by Devs (must be a whole number)"),
     CHECK_UPDATES(SettingSectionKeys.SYSTEM_OPTIONS, "check-updates", true, "Should we check for updates when the server starts"),
     OUTPUT_TYPE(SettingSectionKeys.SYSTEM_OPTIONS, "output-type", "TSV", "How should the output file be formatted\n  # Options: `TSV` - Tab Separated Value file"),
     LOG_TIME_SEPARATION(SettingSectionKeys.SYSTEM_OPTIONS, "log-time-separation", "H", "How often should we create new log files.\n  # Options: `M` - Month, `d` - Day, `H` - Hour, `m` - Minute, `s` - Second"),
     TRANSACTION_LOG_FORMAT(SettingSectionKeys.SYSTEM_OPTIONS, "transaction-log-format", "%Date_@_%Time_@_%ShopType_@_%Owner_@_%TradingPlayer_@_%World_@_%X_@_%Y_@_%Z_@_%CostList_@_%ProductList"
             , "How should the output entries be formatted, each value must be seperated by `_@_`\n  # Changes to this may cause formatting errors in the current output log, please remove old output logs once you have changed this." +
-            "\n  # Values: \n  # %Date \n  # %Time \n  # %ShopType \n  # %Owner \n  # %TradingPlayer \n  # %ShopLocation \n  # %World \n  # %X \n  # %Y \n  # %Z \n  # %CostList \n  # %ProductList");
+            "\n  # Values: \n  # %Date \n  # %Time \n  # %ShopType \n  # %Owner \n  # %TradingPlayer \n  # %ShopLocation \n  # %World \n  # %X \n  # %Y \n  # %Z \n  # %CostList \n  # %ProductList"),
+    ALLOW_METRICS(SettingSectionKeys.SYSTEM_OPTIONS, "allow-metrics", true, "Allow us to connect anonymous metrics so we can see how our plugin is being used to better develop it");
 
 
     private static TradeShopLOG plugin = (TradeShopLOG) Bukkit.getPluginManager().getPlugin("TradeShop-LOG");

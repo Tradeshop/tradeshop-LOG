@@ -25,6 +25,7 @@
 
 package org.shanerx.tradeshoplog;
 
+import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.shanerx.tradeshop.utils.Updater;
@@ -36,6 +37,9 @@ public class TradeShopLOG extends JavaPlugin {
 
 	private TransactionLogger transactionLogger;
 
+	private final int bStatsPluginID = 12596;
+	private Metrics metrics;
+
 	@Override
 	public void onEnable() {
 
@@ -46,9 +50,18 @@ public class TradeShopLOG extends JavaPlugin {
 		PluginManager pm = getServer().getPluginManager();
 
         pm.registerEvents(new SuccessfulTradeEventListener(this), this);
+		pm.registerEvents(new TradeShopReloadEventListener(), this);
 
 		if (Setting.CHECK_UPDATES.getBoolean()) {
 			new Thread(() -> getUpdater().checkCurrentVersion()).start();
+		}
+
+		if (Setting.ALLOW_METRICS.getBoolean()) {
+			metrics = new Metrics(this, bStatsPluginID);
+			getLogger().info("Metrics successfully initialized!");
+
+		} else {
+			getLogger().warning("Metrics are disabled! Please consider enabling them to support the authors!");
 		}
 
 	}

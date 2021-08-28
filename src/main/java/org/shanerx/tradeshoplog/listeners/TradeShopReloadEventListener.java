@@ -28,22 +28,18 @@ package org.shanerx.tradeshoplog.listeners;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.shanerx.tradeshop.framework.events.PlayerSuccessfulTradeEvent;
-import org.shanerx.tradeshoplog.TradeShopLOG;
+import org.shanerx.tradeshop.framework.events.TradeShopReloadEvent;
+import org.shanerx.tradeshop.utils.Utils;
+import org.shanerx.tradeshoplog.enumys.Setting;
 
 
-public class SuccessfulTradeEventListener implements Listener {
+public class TradeShopReloadEventListener implements Listener {
 
-    private final TradeShopLOG tradeShopLOG;
-
-    public SuccessfulTradeEventListener(TradeShopLOG tradeShopARM) {
-        this.tradeShopLOG = tradeShopARM;
-    }
+    public TradeShopReloadEventListener() {}
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onSuccessfulTrade(PlayerSuccessfulTradeEvent event) {
-        if(!event.isCancelled()) {
-            tradeShopLOG.getTransactionLogger().logTransaction(event);
-        }
+    public void onTradeShopReload(TradeShopReloadEvent event) {
+        Setting.reload();
+        event.sender.sendMessage(new Utils().colorize(Setting.MESSAGE_PREFIX.getString() + "&6The configuration files have been reloaded!"));
     }
 }

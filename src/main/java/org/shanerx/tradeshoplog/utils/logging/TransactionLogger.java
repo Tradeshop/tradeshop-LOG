@@ -4,7 +4,7 @@ import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import org.shanerx.tradeshop.framework.events.SuccessfulTradeEvent;
+import org.shanerx.tradeshop.framework.events.PlayerSuccessfulTradeEvent;
 import org.shanerx.tradeshop.objects.Shop;
 import org.shanerx.tradeshop.objects.ShopItemStack;
 import org.shanerx.tradeshoplog.TradeShopLOG;
@@ -55,34 +55,35 @@ public class TransactionLogger {
         return null;
     }
 
-    public void logTransaction(SuccessfulTradeEvent event) {
+    public void logTransaction(PlayerSuccessfulTradeEvent event) {
         PrintWriter printWriter = buildWriter();
-        assert printWriter != null;
-        Shop shop = event.getShop();
-        String localFormat = Setting.TRANSACTION_LOG_FORMAT.getString().replaceAll("_@_", loggerOutputType.getDelimiter());
+        if(printWriter != null) {
+            Shop shop = event.getShop();
+            String localFormat = Setting.TRANSACTION_LOG_FORMAT.getString().replaceAll("_@_", loggerOutputType.getDelimiter());
 
-        if(newFile) {
-            printWriter.println(localFormat.replaceAll("%", ""));
-            newFile = false;
+            if (newFile) {
+                printWriter.println(localFormat.replaceAll("%", ""));
+                newFile = false;
+            }
+            printWriter.println(localFormat
+                    .replaceAll("%Date", getTransactionDate())
+                    .replaceAll("%Time", getTransactionTime())
+                    .replaceAll("%ShopType", shop.getShopType().toString())
+                    .replaceAll("%Owner", shop.getOwner().getName())
+                    .replaceAll("%TradingPlayer", event.getPlayer().getName())
+                    .replaceAll("%ShopLocation", shop.getShopLocationAsSL().toString())
+                    .replaceAll("%World", shop.getShopLocationAsSL().getWorldName())
+                    .replaceAll("%X", shop.getShopLocationAsSL().getX() + "")
+                    .replaceAll("%Y", shop.getShopLocationAsSL().getY() + "")
+                    .replaceAll("%Z", shop.getShopLocationAsSL().getZ() + "")
+                    .replaceAll("%CostList", "\"" + getItemListAsString(event.getCost()) + "\"")
+                    .replaceAll("%ProductList", "\"" + getItemListAsString(event.getProduct())) + "\"");
+            printWriter.close();
         }
-        printWriter.println(localFormat
-                .replaceAll("%Date", getTransactionDate())
-                .replaceAll("%Time", getTransactionTime())
-                .replaceAll("%ShopType", shop.getShopType().toString())
-                .replaceAll("%Owner", shop.getOwner().getName())
-                .replaceAll("%TradingPlayer", event.getPlayer().getName())
-                .replaceAll("%ShopLocation", shop.getShopLocationAsSL().toString())
-                .replaceAll("%World", shop.getShopLocationAsSL().getWorldName())
-                .replaceAll("%X", shop.getShopLocationAsSL().getX() + "")
-                .replaceAll("%Y", shop.getShopLocationAsSL().getY() + "")
-                .replaceAll("%Z", shop.getShopLocationAsSL().getZ() + "")
-                .replaceAll("%CostList", "\"" + getItemListAsString(event.getCost()) + "\"")
-                .replaceAll("%ProductList", "\"" + getItemListAsString(event.getProduct())) + "\"");
-        printWriter.close();
     }
 
     private String getItemListAsString(List<ShopItemStack> itemList) {
-        final Gson gson = new GsonBuilder().serializeNulls().create();
+        final Gson gson = new GsonBuilder().create();
         JsonObject jsonObj = new JsonObject();
         for (int i = 0; i < itemList.size(); i++) {
             jsonObj.add(i + "", gson.toJsonTree(itemList.get(i).getItemStack()));

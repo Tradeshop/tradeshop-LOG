@@ -31,7 +31,7 @@
 
     <groupId>org.shanerx</groupId>
     <artifactId>tradeshop-log</artifactId>
-    <version>0.0.1-DEV</version>
+    <version>0.0.2-DEV</version>
     <name>TradeShop-LOG</name>
     <url>https://tradeshop.github.io/</url>
     <description>Add-On plugin for Tradeshop that adds basic logging of transactions. This will later be integrated into TradeShop itself.</description>
@@ -121,6 +121,13 @@
             <artifactId>spigot-api</artifactId>
             <version>1.15.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>2.2.1</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
