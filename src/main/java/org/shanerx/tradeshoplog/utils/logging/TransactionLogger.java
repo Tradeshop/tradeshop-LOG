@@ -23,6 +23,7 @@ public class TransactionLogger {
     private final TradeShopLOG tradeShopLOG;
     private LoggerOutputType loggerOutputType;
     private boolean newFile = false;
+    private String localFormat;
     
     public TransactionLogger(TradeShopLOG tradeShopLOG) {
         this.tradeShopLOG = tradeShopLOG;
@@ -32,6 +33,8 @@ public class TransactionLogger {
         } catch (IllegalArgumentException | NullPointerException ex) {
             loggerOutputType = LoggerOutputType.TSV;
         }
+
+        localFormat = Setting.TRANSACTION_LOG_FORMAT.getString().replaceAll("_@_", loggerOutputType.getDelimiter());
     }
 
     private PrintWriter buildWriter() {
@@ -59,7 +62,6 @@ public class TransactionLogger {
         PrintWriter printWriter = buildWriter();
         if(printWriter != null) {
             Shop shop = event.getShop();
-            String localFormat = Setting.TRANSACTION_LOG_FORMAT.getString().replaceAll("_@_", loggerOutputType.getDelimiter());
 
             if (newFile) {
                 printWriter.println(localFormat.replaceAll("%", ""));
@@ -93,6 +95,7 @@ public class TransactionLogger {
         JsonObject jsonObj = new JsonObject();
         for (int i = 0; i < itemList.size(); i++) {
             jsonObj.add(i + "", gson.toJsonTree(itemList.get(i).getItemStack()));
+
         }
 
         return gson.toJson(jsonObj);
