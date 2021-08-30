@@ -4,6 +4,7 @@ import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import org.bukkit.inventory.ItemStack;
 import org.shanerx.tradeshop.framework.events.PlayerSuccessfulTradeEvent;
 import org.shanerx.tradeshop.objects.Shop;
 import org.shanerx.tradeshop.objects.ShopItemStack;
@@ -97,11 +98,11 @@ public class TransactionLogger {
         }
     }
 
-    private String getItemListAsString(List<ShopItemStack> itemList) {
+    private String getItemListAsString(List<ItemStack> itemList) {
         final Gson gson = new GsonBuilder().create();
         JsonObject jsonObj = new JsonObject();
         for (int i = 0; i < itemList.size(); i++) {
-            JsonObject temp = gson.toJsonTree(itemList.get(i).getItemStack()).getAsJsonObject();
+            JsonObject temp = gson.toJsonTree(new ItemStack(itemList.get(i))).getAsJsonObject();
 
             // remove unneeded tags
             if(temp.has("meta")) {
