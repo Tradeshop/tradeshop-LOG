@@ -31,7 +31,7 @@
 
     <groupId>org.shanerx</groupId>
     <artifactId>tradeshop-log</artifactId>
-    <version>0.0.2-DEV</version>
+    <version>0.0.3-DEV</version>
     <name>TradeShop-LOG</name>
     <url>https://tradeshop.github.io/</url>
     <description>Add-On plugin for Tradeshop that adds basic logging of transactions. This will later be integrated into TradeShop itself.</description>
