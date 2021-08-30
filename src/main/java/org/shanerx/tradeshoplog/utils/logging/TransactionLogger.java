@@ -17,6 +17,8 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TransactionLogger {
 
@@ -84,8 +86,13 @@ public class TransactionLogger {
                     .replaceAll("%X", shop.getShopLocationAsSL().getX() + "")
                     .replaceAll("%Y", shop.getShopLocationAsSL().getY() + "")
                     .replaceAll("%Z", shop.getShopLocationAsSL().getZ() + "")
-                    .replaceAll("%CostList", "\"" + getItemListAsString(event.getCost()) + "\"")
-                    .replaceAll("%ProductList", "\"" + getItemListAsString(event.getProduct())) + "\"");
+                    .replaceAll("%CostList", getItemListAsString(event.getCost()))
+                    .replaceAll("%ProductList", getItemListAsString(event.getProduct()))
+                    .replace("}\"}", "}}")
+                    .replace("\\\"", "\"")
+                    .replace("}]\"}", "}]}")
+                    .replace("{\"\",", "[")
+            );
             printWriter.close();
         }
     }
@@ -94,11 +101,92 @@ public class TransactionLogger {
         final Gson gson = new GsonBuilder().create();
         JsonObject jsonObj = new JsonObject();
         for (int i = 0; i < itemList.size(); i++) {
-            jsonObj.add(i + "", gson.toJsonTree(itemList.get(i).getItemStack()));
+            JsonObject temp = gson.toJsonTree(itemList.get(i).getItemStack()).getAsJsonObject();
 
+            // remove unneeded tags
+            if(temp.has("meta")) {
+                JsonObject tempMeta =  temp.getAsJsonObject("meta");
+                tempMeta.remove("placeableKeys");
+                tempMeta.remove("destroyableKeys");
+
+                if(tempMeta.has("persistentDataContainer")) {
+                    JsonObject tempPerData =  tempMeta.getAsJsonObject("persistentDataContainer");
+                    tempPerData.remove("registry");
+                    tempPerData.remove("adapterContext");
+                }
+            }
+
+            jsonObj.add("Item #" + i, temp);
         }
 
-        return gson.toJson(jsonObj);
+        String ret = gson.toJson(jsonObj);
+
+        Matcher m = Pattern.compile("(/).+( [\\[{])").matcher(ret);
+
+        while (m.find()) {
+            String temp = m.group(),
+                    rep = temp.replaceAll(" [\\[{]", "\", \"commandJson\":" + temp.charAt(temp.length()-1));
+            ret = ret.replace(temp, rep);
+        }
+
+        Matcher nonStringedKeys = Pattern.compile("([,{]\\w+:)").matcher(ret);
+
+        // Adds quotations around Keys that need them
+        while (nonStringedKeys.find()) {
+            String temp = nonStringedKeys.group(),
+                    rep = temp.charAt(0) + "\"" + temp.replaceAll("[,{:]", "") + "\"" + temp.charAt(temp.length()-1);
+            ret = ret.replace(temp, rep);
+        }
+
+        Matcher nonStringedValues = Pattern.compile("(:[a-zA-Z.]+[,}])").matcher(ret);
+
+        // Adds quotations around values that need them
+        while (nonStringedValues.find()) {
+            String temp = nonStringedValues.group(),
+                test = temp.replaceAll("[,}:]", "");
+
+            // Only add "" if the value is not true|false
+            if(!(test.equals("true") || test.equals("false"))) {
+                String rep = temp.charAt(0) + "\"" + temp.replaceAll("[,}:]", "") + "\"" + temp.charAt(temp.length() - 1);
+                ret = ret.replace(temp, rep);
+            }
+        }
+
+        /*
+        // Replaces get rid of " that break the json output
+        // Remove " from :"{
+        ret = ret.replace(":\"{", ":{");
+        // Remove " from }",
+        ret = ret.replace("}\",", "},");
+        // Remove " from ,"{
+        ret = ret.replace(",\"{", ",{");
+        // Remove " from ["{
+        ret = ret.replace("[\"{", "[{");
+        // Remove " from }"]
+        ret = ret.replace("}\"]", "}]");
+        // Remove " from }"}
+        ret = ret.replace("}\"}", "}}");
+        // Replace empty "" with "unknown"
+        ret = ret.replace("{\"\",", "[");
+        */
+
+        return ret
+                // Remove " from :"{
+                .replace(":\"{", ":{")
+                // Remove " from }",
+                .replace("}\",", "},")
+                // Remove " from ,"{
+                .replace(",\"{", ",{")
+                // Remove " from ["{
+                .replace("[\"{", "[{")
+                // Remove " from }"]
+                .replace("}\"]", "}]")
+                // Remove " from {"{
+                .replace("{\"{", "{{")
+                // Remove " from }"}
+                .replace("}\"}", "}}")
+                // Replace empty "" with "unknown"
+                .replace("\"\",", "");
     }
 
     private String getFileTimeString() {
@@ -126,7 +214,7 @@ public class TransactionLogger {
     }
 
     private String getTransactionTime() {
-        return new SimpleDateFormat("HH-mm-ss").format(new Date());
+        return new SimpleDateFormat("HH:mm:ss").format(new Date());
     }
 
     private  String getTransactionDate() {
