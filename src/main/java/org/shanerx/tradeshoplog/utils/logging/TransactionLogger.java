@@ -10,12 +10,15 @@ import org.shanerx.tradeshop.objects.Shop;
 import org.shanerx.tradeshop.objects.ShopItemStack;
 import org.shanerx.tradeshoplog.TradeShopLOG;
 import org.shanerx.tradeshoplog.enumys.Setting;
+import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -99,59 +102,60 @@ public class TransactionLogger {
     }
 
     private String getItemListAsString(List<ItemStack> itemList) {
-        final Gson gson = new GsonBuilder().create();
-        JsonObject jsonObj = new JsonObject();
-        for (int i = 0; i < itemList.size(); i++) {
-            JsonObject temp = gson.toJsonTree(new ItemStack(itemList.get(i))).getAsJsonObject();
+        try {
+            final Gson gson = new GsonBuilder().create();
+            JsonObject jsonObj = new JsonObject();
+            for (int i = 0; i < itemList.size(); i++) {
+                JsonObject temp = gson.toJsonTree(new ItemStack(itemList.get(i))).getAsJsonObject();
 
-            // remove unneeded tags
-            if(temp.has("meta")) {
-                JsonObject tempMeta =  temp.getAsJsonObject("meta");
-                tempMeta.remove("placeableKeys");
-                tempMeta.remove("destroyableKeys");
+                // remove unneeded tags
+                if (temp.has("meta")) {
+                    JsonObject tempMeta = temp.getAsJsonObject("meta");
+                    tempMeta.remove("placeableKeys");
+                    tempMeta.remove("destroyableKeys");
 
-                if(tempMeta.has("persistentDataContainer")) {
-                    JsonObject tempPerData =  tempMeta.getAsJsonObject("persistentDataContainer");
-                    tempPerData.remove("registry");
-                    tempPerData.remove("adapterContext");
+                    if (tempMeta.has("persistentDataContainer")) {
+                        JsonObject tempPerData = tempMeta.getAsJsonObject("persistentDataContainer");
+                        tempPerData.remove("registry");
+                        tempPerData.remove("adapterContext");
+                    }
                 }
+
+                jsonObj.add("Item #" + i, temp);
             }
 
-            jsonObj.add("Item #" + i, temp);
-        }
+            String ret = gson.toJson(jsonObj);
 
-        String ret = gson.toJson(jsonObj);
+            Matcher m = Pattern.compile("(/).+( [\\[{])").matcher(ret);
 
-        Matcher m = Pattern.compile("(/).+( [\\[{])").matcher(ret);
-
-        while (m.find()) {
-            String temp = m.group(),
-                    rep = temp.replaceAll(" [\\[{]", "\", \"commandJson\":" + temp.charAt(temp.length()-1));
-            ret = ret.replace(temp, rep);
-        }
-
-        Matcher nonStringedKeys = Pattern.compile("([,{]\\w+:)").matcher(ret);
-
-        // Adds quotations around Keys that need them
-        while (nonStringedKeys.find()) {
-            String temp = nonStringedKeys.group(),
-                    rep = temp.charAt(0) + "\"" + temp.replaceAll("[,{:]", "") + "\"" + temp.charAt(temp.length()-1);
-            ret = ret.replace(temp, rep);
-        }
-
-        Matcher nonStringedValues = Pattern.compile("(:[a-zA-Z.]+[,}])").matcher(ret);
-
-        // Adds quotations around values that need them
-        while (nonStringedValues.find()) {
-            String temp = nonStringedValues.group(),
-                test = temp.replaceAll("[,}:]", "");
-
-            // Only add "" if the value is not true|false
-            if(!(test.equals("true") || test.equals("false"))) {
-                String rep = temp.charAt(0) + "\"" + temp.replaceAll("[,}:]", "") + "\"" + temp.charAt(temp.length() - 1);
+            while (m.find()) {
+                String temp = m.group(),
+                        rep = temp.replaceAll(" [\\[{]", "\", \"commandJson\":" + temp.charAt(temp.length() - 1));
                 ret = ret.replace(temp, rep);
             }
-        }
+
+            Matcher nonStringedKeys = Pattern.compile("([,{]\\w+:)").matcher(ret);
+
+            // Adds quotations around Keys that need them
+            while (nonStringedKeys.find()) {
+                String temp = nonStringedKeys.group(),
+                        rep = temp.charAt(0) + "\"" + temp.replaceAll("[,{:]", "") + "\"" + temp.charAt(temp.length() - 1);
+                ret = ret.replace(temp, rep);
+            }
+
+            Matcher nonStringedValues = Pattern.compile("(:[a-zA-Z.]+[,}])").matcher(ret);
+
+            // Adds quotations around values that need them
+            while (nonStringedValues.find()) {
+                String temp = nonStringedValues.group(),
+                        test = temp.replaceAll("[,}:]", "");
+
+                // Only add "" if the value is not true|false
+                if (!(test.equals("true") || test.equals("false"))) {
+                    String rep = temp.charAt(0) + "\"" + temp.replaceAll("[,}:]", "") + "\"" + temp.charAt(temp.length() - 1);
+                    ret = ret.replace(temp, rep);
+                }
+            }
 
         /*
         // Replaces get rid of " that break the json output
@@ -171,23 +175,27 @@ public class TransactionLogger {
         ret = ret.replace("{\"\",", "[");
         */
 
-        return ret
-                // Remove " from :"{
-                .replace(":\"{", ":{")
-                // Remove " from }",
-                .replace("}\",", "},")
-                // Remove " from ,"{
-                .replace(",\"{", ",{")
-                // Remove " from ["{
-                .replace("[\"{", "[{")
-                // Remove " from }"]
-                .replace("}\"]", "}]")
-                // Remove " from {"{
-                .replace("{\"{", "{{")
-                // Remove " from }"}
-                .replace("}\"}", "}}")
-                // Replace empty "" with "unknown"
-                .replace("\"\",", "");
+            return ret
+                    // Remove " from :"{
+                    .replace(":\"{", ":{")
+                    // Remove " from }",
+                    .replace("}\",", "},")
+                    // Remove " from ,"{
+                    .replace(",\"{", ",{")
+                    // Remove " from ["{
+                    .replace("[\"{", "[{")
+                    // Remove " from }"]
+                    .replace("}\"]", "}]")
+                    // Remove " from {"{
+                    .replace("{\"{", "{{")
+                    // Remove " from }"}
+                    .replace("}\"}", "}}")
+                    // Replace empty "" with "unknown"
+                    .replace("\"\",", "");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error: " + Base64.getEncoder().encodeToString(e.getStackTrace().toString().getBytes(StandardCharsets.UTF_8));
+        }
     }
 
     private String getFileTimeString() {
